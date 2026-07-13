@@ -9,9 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Index_tempRouteImport } from './routes/index_temp'
+import { Route as IndexBackupRouteImport } from './routes/index-backup'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiAnalyzeRouteImport } from './routes/api/analyze'
 
+const Index_tempRoute = Index_tempRouteImport.update({
+  id: '/index_temp',
+  path: '/index_temp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexBackupRoute = IndexBackupRouteImport.update({
+  id: '/index-backup',
+  path: '/index-backup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -25,32 +37,54 @@ const ApiAnalyzeRoute = ApiAnalyzeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/index-backup': typeof IndexBackupRoute
+  '/index_temp': typeof Index_tempRoute
   '/api/analyze': typeof ApiAnalyzeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/index-backup': typeof IndexBackupRoute
+  '/index_temp': typeof Index_tempRoute
   '/api/analyze': typeof ApiAnalyzeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/index-backup': typeof IndexBackupRoute
+  '/index_temp': typeof Index_tempRoute
   '/api/analyze': typeof ApiAnalyzeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/analyze'
+  fullPaths: '/' | '/index-backup' | '/index_temp' | '/api/analyze'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/analyze'
-  id: '__root__' | '/' | '/api/analyze'
+  to: '/' | '/index-backup' | '/index_temp' | '/api/analyze'
+  id: '__root__' | '/' | '/index-backup' | '/index_temp' | '/api/analyze'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  IndexBackupRoute: typeof IndexBackupRoute
+  Index_tempRoute: typeof Index_tempRoute
   ApiAnalyzeRoute: typeof ApiAnalyzeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/index_temp': {
+      id: '/index_temp'
+      path: '/index_temp'
+      fullPath: '/index_temp'
+      preLoaderRoute: typeof Index_tempRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/index-backup': {
+      id: '/index-backup'
+      path: '/index-backup'
+      fullPath: '/index-backup'
+      preLoaderRoute: typeof IndexBackupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -70,6 +104,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  IndexBackupRoute: IndexBackupRoute,
+  Index_tempRoute: Index_tempRoute,
   ApiAnalyzeRoute: ApiAnalyzeRoute,
 }
 export const routeTree = rootRouteImport

@@ -51,7 +51,7 @@
   --popover: oklch(0.17 0.006 260);
   --popover-foreground: oklch(0.96 0.005 260);
 
-  --primary: oklch(0.88 0.24 145);          /* terminal green */
+  --primary: oklch(0.88 0.24 145); /* terminal green */
   --primary-foreground: oklch(0.14 0.005 260);
   --secondary: oklch(0.22 0.008 260);
   --secondary-foreground: oklch(0.96 0.005 260);
@@ -67,10 +67,10 @@
   --ring: oklch(0.88 0.24 145);
 
   /* Per-agent colors */
-  --agent-supervisor: oklch(0.88 0.24 145);   /* green */
-  --agent-researcher: oklch(0.75 0.17 235);   /* blue */
-  --agent-matcher: oklch(0.72 0.19 305);      /* purple */
-  --agent-prep: oklch(0.82 0.17 80);          /* amber */
+  --agent-supervisor: oklch(0.88 0.24 145); /* green */
+  --agent-researcher: oklch(0.75 0.17 235); /* blue */
+  --agent-matcher: oklch(0.72 0.19 305); /* purple */
+  --agent-prep: oklch(0.82 0.17 80); /* amber */
 }
 
 .dark {
@@ -79,23 +79,92 @@
 }
 
 @keyframes stream-fade {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse-node {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 35%, transparent); }
-  50% { box-shadow: 0 0 0 10px color-mix(in oklab, var(--accent) 0%, transparent); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in oklab, var(--accent) 0%, transparent);
+  }
 }
 
 @keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(400%); }
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(400%);
+  }
 }
 
 @keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes uploadPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 25%, transparent);
+    border-color: var(--accent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in oklab, var(--accent) 0%, transparent);
+    border-color: var(--accent);
+  }
+}
+
+@keyframes processingScan {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate-upload-pulse {
+  animation: uploadPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-processing-scan {
+  animation: processingScan 2s linear infinite;
+}
+
+.resume-dropzone {
+  background:
+    radial-gradient(
+      circle at 20% 80%,
+      color-mix(in oklab, var(--accent) 3%, transparent) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      color-mix(in oklab, var(--agent-matcher) 3%, transparent) 0%,
+      transparent 50%
+    );
 }
 
 @utility animate-stream {
@@ -113,7 +182,11 @@
 @utility grid-bg {
   background-image:
     linear-gradient(color-mix(in oklab, var(--foreground) 4%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--foreground) 4%, transparent) 1px, transparent 1px);
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--foreground) 4%, transparent) 1px,
+      transparent 1px
+    );
   background-size: 32px 32px;
 }
 
@@ -125,7 +198,12 @@
   position: absolute;
   inset-inline: 0;
   height: 24%;
-  background: linear-gradient(to bottom, transparent, color-mix(in oklab, var(--accent) 12%, transparent), transparent);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in oklab, var(--accent) 12%, transparent),
+    transparent
+  );
   animation: scan 3.5s linear infinite;
   pointer-events: none;
 }
@@ -135,7 +213,8 @@
     border-color: var(--color-border);
   }
 
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);

@@ -42,7 +42,7 @@ interface AgentSpec {
   id: AgentId;
   label: string;
   system: string;
-  buildUser: (ctx: { jd: string; prior: Record<string, string> }) => string;
+  buildUser: (ctx: { jd: string; resume: string; prior: Record<string, string> }) => string;
 }
 
 const AGENTS: AgentSpec[] = [
@@ -51,43 +51,51 @@ const AGENTS: AgentSpec[] = [
     label: "Supervisor",
     system:
       "You are the SUPERVISOR node of a multi-agent job-application system. " +
-      "Your job is to briefly analyze a Job Description and dispatch work to three specialists: " +
+      "Your job is to briefly analyze a Job Description and the candidate's Resume, then dispatch work to three specialists: " +
       "RESEARCHER (company/market intel), MATCHER (resume-vs-JD gap analysis), PREP (interview prep). " +
-      "Respond in 3-5 short bullet points in the format:\n" +
-      "• Role: <extracted title>\n• Company/Stack: <key tech>\n• Dispatch → RESEARCHER: <one-line brief>\n• Dispatch → MATCHER: <one-line brief>\n• Dispatch → PREP: <one-line brief>\n" +
+      "Respond in 4-6 short bullet points in the format:\n" +
+      "• Candidate: <name + key strengths from resume>\n" +
+      "• Role: <extracted title from JD>\n" +
+      "• Company/Stack: <key tech from JD>\n" +
+      "• Dispatch → RESEARCHER: <one-line brief>\n" +
+      "• Dispatch → MATCHER: <one-line brief>\n" +
+      "• Dispatch → PREP: <one-line brief>\n" +
       "No preamble. Be terse. Use plain text.",
-    buildUser: ({ jd }) => `JOB DESCRIPTION:\n"""\n${jd}\n"""`,
+    buildUser: ({ jd, resume }) =>
+      `CANDIDATE RESUME:\n"""\n${resume}\n"""\n\nJOB DESCRIPTION:\n"""\n${jd}\n"""`,
   },
   {
     id: "researcher",
     label: "Researcher",
     system:
-      "You are the RESEARCHER agent. Given a JD, produce concise intelligence a candidate needs BEFORE interviewing. " +
+      "You are the RESEARCHER agent. Given a JD and candidate resume, produce concise intelligence the candidate needs BEFORE interviewing. " +
+      "Focus on company intel that complements their background. " +
       "Return markdown with sections: **Company Snapshot**, **Tech & Stack Signals**, **Market/Competitive Context**, **Culture Cues**. " +
       "3-6 bullets per section. Ground claims in what the JD implies; if unknown, say so. Be crisp, no fluff.",
-    buildUser: ({ jd, prior }) =>
-      `SUPERVISOR BRIEF:\n${prior.supervisor}\n\nJOB DESCRIPTION:\n"""\n${jd}\n"""`,
+    buildUser: ({ jd, resume, prior }) =>
+      `SUPERVISOR BRIEF:\n${prior.supervisor}\n\nCANDIDATE RESUME:\n"""\n${resume}\n"""\n\nJOB DESCRIPTION:\n"""\n${jd}\n"""`,
   },
   {
     id: "matcher",
     label: "Matcher",
     system:
-      "You are the MATCHER agent. Perform a gap analysis between a generic Senior Engineer candidate profile " +
-      "(6 years experience, Python/TypeScript, cloud, some LLM work, no formal ML PhD) and the JD requirements. " +
-      "Return markdown with: **Match Score: XX%** on the first line, then **Strong Matches** (bullets), **Partial Matches** (bullets), **Gaps** (bullets), **Recommendation** (1 short paragraph). " +
-      "Score realistically 55–92. No preamble.",
-    buildUser: ({ jd, prior }) =>
-      `RESEARCH CONTEXT:\n${prior.researcher}\n\nJOB DESCRIPTION:\n"""\n${jd}\n"""`,
+      "You are the MATCHER agent. Perform a detailed gap analysis between the candidate's actual resume and the JD requirements. " +
+      "Analyze their specific experience, skills, projects, and background against what's needed. " +
+      "Return markdown with: **Match Score: XX%** on the first line, then **Strong Matches** (specific skills/experience from their resume), **Partial Matches** (transferable skills), **Gaps** (missing requirements), **Recommendation** (1 tailored paragraph for this specific candidate). " +
+      "Score realistically 55–95 based on their actual background. No generic advice - be specific to their profile.",
+    buildUser: ({ jd, resume, prior }) =>
+      `RESEARCH CONTEXT:\n${prior.researcher}\n\nCANDIDATE RESUME:\n"""\n${resume}\n"""\n\nJOB DESCRIPTION:\n"""\n${jd}\n"""`,
   },
   {
     id: "prep",
     label: "Prep Agent",
     system:
-      "You are the PREP agent. Using the JD, research context, and gap analysis, produce a tailored interview prep sheet. " +
-      "Return markdown with: **Likely Technical Questions** (5, each 1 line), **Behavioral Prompts** (3), **Questions to Ask Them** (3), **48-Hour Study Plan** (3 bullets). " +
-      "Be specific to the role, not generic.",
-    buildUser: ({ jd, prior }) =>
-      `RESEARCH:\n${prior.researcher}\n\nMATCH ANALYSIS:\n${prior.matcher}\n\nJOB DESCRIPTION:\n"""\n${jd}\n"""`,
+      "You are the PREP agent. Using the JD, research context, gap analysis, and the candidate's specific background, produce a highly personalized interview prep sheet. " +
+      "Leverage their actual projects, experience, and skills to craft targeted responses. " +
+      "Return markdown with: **Likely Technical Questions** (5 questions they should expect based on the role + their background), **Behavioral Prompts** (3 questions where they can showcase their specific experience), **Questions to Ask Them** (3 strategic questions based on their level and the company), **48-Hour Study Plan** (3 personalized bullets based on their gaps and strengths). " +
+      "Reference their actual projects, experience, and skills throughout. Be specific, not generic.",
+    buildUser: ({ jd, resume, prior }) =>
+      `RESEARCH:\n${prior.researcher}\n\nMATCH ANALYSIS:\n${prior.matcher}\n\nCANDIDATE RESUME:\n"""\n${resume}\n"""\n\nJOB DESCRIPTION:\n"""\n${jd}\n"""`,
   },
 ];
 
@@ -108,22 +116,27 @@ export const Route = createFileRoute("/api/analyze")({
         }
 
         let jd = "";
+        let resume = "";
         try {
-          const body = (await request.json()) as { jd?: string };
+          const body = (await request.json()) as { jd?: string; resume?: string };
           jd = (body.jd ?? "").trim();
+          resume = (body.resume ?? "").trim();
         } catch {
           return new Response("Invalid JSON body", { status: 400 });
         }
         if (jd.length < 20) {
           return new Response("Job description too short", { status: 400 });
         }
+        if (resume.length < 50) {
+          return new Response("Resume too short for analysis", { status: 400 });
+        }
         if (jd.length > 8000) jd = jd.slice(0, 8000);
+        if (resume.length > 12000) resume = resume.slice(0, 12000);
 
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
           async start(controller) {
-            const send = (obj: unknown) =>
-              controller.enqueue(encoder.encode(sseEvent(obj)));
+            const send = (obj: unknown) => controller.enqueue(encoder.encode(sseEvent(obj)));
 
             const prior: Record<string, string> = {};
             try {
@@ -135,10 +148,11 @@ export const Route = createFileRoute("/api/analyze")({
                 // OpenAI-compatible. Provide a best-effort non-streaming fallback
                 // that posts a single prompt to a configurable Gemini-compatible URL.
                 if (cfg.name === "gemini") {
-                  const prompt = `${agent.system}\n\n${agent.buildUser({ jd, prior })}`;
+                  const prompt = `${agent.system}\n\n${agent.buildUser({ jd, resume, prior })}`;
                   // Model short name (no leading "models/") must be used in the path.
                   const modelShort = MODEL.replace("google/", "");
-                  const geminiUrl = process.env.GEMINI_API_URL ||
+                  const geminiUrl =
+                    process.env.GEMINI_API_URL ||
                     `https://generativelanguage.googleapis.com/v1/models/${modelShort}:generateContent?key=${apiKey}`;
 
                   let parsedText = "";
@@ -162,26 +176,34 @@ export const Route = createFileRoute("/api/analyze")({
 
                     if (!gemRes.ok) {
                       const t = await gemRes.text().catch(() => "");
-                      send({ type: "error", agent: agent.id, message: `Gateway error ${gemRes.status}: ${t.slice(0,200)}` });
+                      send({
+                        type: "error",
+                        agent: agent.id,
+                        message: `Gateway error ${gemRes.status}: ${t.slice(0, 200)}`,
+                      });
                       break;
                     }
 
                     const data = await gemRes.json().catch(() => ({}));
                     // Parse common generateContent response shapes
                     // Prefer the parts/text shape returned by generateContent
-                    parsedText = (
-                      // e.g. data.candidates[0].content.parts[0].text
-                      (data.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") as string) ||
-                      // alternate shapes
-                      data.candidates?.[0]?.content ||
-                      data.candidates?.[0]?.output?.[0]?.content ||
-                      data.output?.text ||
-                      data.choices?.[0]?.message?.content ||
-                      data.choices?.[0]?.text ||
-                      ""
-                    ) as string;
+                    parsedText = // e.g. data.candidates[0].content.parts[0].text
+                      ((data.candidates?.[0]?.content?.parts
+                        ?.map((p: any) => p.text)
+                        .join("") as string) ||
+                        // alternate shapes
+                        data.candidates?.[0]?.content ||
+                        data.candidates?.[0]?.output?.[0]?.content ||
+                        data.output?.text ||
+                        data.choices?.[0]?.message?.content ||
+                        data.choices?.[0]?.text ||
+                        "") as string;
                   } catch (err) {
-                    send({ type: "error", agent: agent.id, message: err instanceof Error ? err.message : String(err) });
+                    send({
+                      type: "error",
+                      agent: agent.id,
+                      message: err instanceof Error ? err.message : String(err),
+                    });
                     break;
                   }
 
@@ -202,7 +224,7 @@ export const Route = createFileRoute("/api/analyze")({
                     stream: true,
                     messages: [
                       { role: "system", content: agent.system },
-                      { role: "user", content: agent.buildUser({ jd, prior }) },
+                      { role: "user", content: agent.buildUser({ jd, resume, prior }) },
                     ],
                   }),
                 });
@@ -219,8 +241,7 @@ export const Route = createFileRoute("/api/analyze")({
                   send({
                     type: "error",
                     agent: agent.id,
-                    message:
-                      "AI credits exhausted on this workspace. Add credits to continue.",
+                    message: "AI credits exhausted on this workspace. Add credits to continue.",
                   });
                   break;
                 }
@@ -252,8 +273,7 @@ export const Route = createFileRoute("/api/analyze")({
                     if (data === "[DONE]") continue;
                     try {
                       const parsed = JSON.parse(data);
-                      const delta: string | undefined =
-                        parsed.choices?.[0]?.delta?.content;
+                      const delta: string | undefined = parsed.choices?.[0]?.delta?.content;
                       if (delta) {
                         full += delta;
                         send({ type: "token", agent: agent.id, delta });
