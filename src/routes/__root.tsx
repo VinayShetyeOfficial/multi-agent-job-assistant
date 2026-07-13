@@ -16,12 +16,8 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <div className="font-mono text-xs uppercase tracking-[0.3em] text-accent">
-          Error 404
-        </div>
-        <h1 className="mt-4 text-4xl font-bold text-foreground">
-          NODE_NOT_FOUND
-        </h1>
+        <div className="font-mono text-xs uppercase tracking-[0.3em] text-accent">Error 404</div>
+        <h1 className="mt-4 text-4xl font-bold text-foreground">NODE_NOT_FOUND</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           This route is not registered in the graph topology.
         </p>
@@ -49,9 +45,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <div className="font-mono text-xs uppercase tracking-[0.3em] text-destructive">
           Runtime Fault
         </div>
-        <h1 className="mt-4 text-2xl font-bold text-foreground">
-          Kernel panic in agent graph
-        </h1>
+        <h1 className="mt-4 text-2xl font-bold text-foreground">Kernel panic in agent graph</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           The orchestrator crashed. Restart the session or return home.
         </p>
@@ -82,28 +76,64 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Agentic.OS — Multi-Agent Job Application Assistant" },
+      { title: "AGENTIC.OS // RECRUIT — AI-Powered Job Assistant" },
       {
         name: "description",
         content:
-          "A LangGraph-inspired multi-agent system that researches companies, matches your resume against the JD, and generates tailored interview prep — live, in your browser.",
+          "Multi-agent AI system for intelligent job application analysis. Upload your resume and job description to get real-time match scoring, gap analysis, and interview prep powered by LangGraph.",
       },
-      { name: "author", content: "Agentic.OS" },
+      { name: "author", content: "Vinay Kumar" },
+      { name: "theme-color", content: "#0f172a" },
+      { name: "application-name", content: "AGENTIC.OS // RECRUIT" },
+
+      // Open Graph / Facebook
       {
         property: "og:title",
-        content: "Agentic.OS — Multi-Agent Job Application Assistant",
+        content: "AGENTIC.OS // RECRUIT — AI-Powered Job Assistant",
       },
       {
         property: "og:description",
         content:
-          "Watch a Supervisor route Research, Matcher, and Prep agents in real time — compiled into a recruiter-ready case file.",
+          "Watch a Supervisor coordinate Research, Matcher, and Prep agents in real-time. Get AI-powered resume analysis, skill gap identification, and personalized interview preparation.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "/android-chrome-512x512.png" },
+
+      // Twitter
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "AGENTIC.OS // RECRUIT — AI Job Assistant" },
+      {
+        name: "twitter:description",
+        content:
+          "Multi-agent AI system for intelligent job application analysis with real-time streaming.",
+      },
+      { name: "twitter:image", content: "/android-chrome-512x512.png" },
+
+      // PWA
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "AGENTIC.OS" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+
+      // Favicon - multiple formats for cross-platform support
+      { rel: "icon", href: "/favicon.ico", sizes: "32x32" },
+      { rel: "icon", href: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+      { rel: "icon", href: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+
+      // Apple Touch Icon
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
+
+      // Android Chrome Icons
+      { rel: "icon", href: "/android-chrome-192x192.png", type: "image/png", sizes: "192x192" },
+      { rel: "icon", href: "/android-chrome-512x512.png", type: "image/png", sizes: "512x512" },
+
+      // Web App Manifest
+      { rel: "manifest", href: "/site.webmanifest" },
+
+      // Font preconnects
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
