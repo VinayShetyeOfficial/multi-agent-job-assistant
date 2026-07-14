@@ -89,10 +89,6 @@ graph TD
 
 ### 🎨 Modern User Interface
 
-<div align="center">
-<img src="assets/architecture.png" alt="System Architecture" width="90%" />
-</div>
-
 - **Split-Panel Layout**: Efficient input/results organization
 - **2×2 Results Grid**: Match score, graph topology, gaps, and prep question
 - **Real-Time Execution Trace**: Live agent activity monitoring with colored logs
