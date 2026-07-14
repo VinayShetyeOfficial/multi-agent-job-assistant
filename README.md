@@ -16,7 +16,7 @@
 [![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-[🚀 Live Demo](#)
+[🚀 Live Demo](https://multi-agent-job-assistant.netlify.app/)
 
 </div>
 
